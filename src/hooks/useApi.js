@@ -12,7 +12,6 @@ import {
 } from '@/api'
 import { getModelByName } from '@/config/models'
 import { useApiConfig } from './useApiConfig'
-import { useProvider } from './useProvider'
 import { useModelStore } from '@/stores/pinia'
 
 /**
@@ -49,17 +48,44 @@ export const useApiState = () => {
   return { loading, error, status, reset, setLoading, setError, setSuccess }
 }
 
+const getTaskStatus = (result) => {
+  return String(result?.task_status || result?.status || result?.data?.task_status || result?.data?.status || '').toLowerCase()
+}
+
+const getVideoUrl = (result) => {
+  return result?.url ||
+    result?.data?.url ||
+    result?.data?.[0]?.url ||
+    result?.content?.video_url ||
+    result?.video_url ||
+    result?.video_result?.[0]?.url ||
+    result?.data?.video_result?.[0]?.url ||
+    ''
+}
+
 /**
  * Chat composable | 问答组合式函数
  */
 export const useChat = (options = {}) => {
   const { loading, error, status, reset, setLoading, setError, setSuccess } = useApiState()
-  const { adaptRequest, adaptResponse } = useProvider()
   const modelStore = useModelStore()
 
   const messages = ref([])
   const currentResponse = ref('')
   let abortController = null
+
+  const resolveChatModel = (preferredModel) => {
+    const availableModels = modelStore.availableChatModels || []
+    const isSupported = (model) => availableModels.some(m => m.key === model)
+
+    if (preferredModel && isSupported(preferredModel)) {
+      return preferredModel
+    }
+    if (modelStore.selectedChatModel && isSupported(modelStore.selectedChatModel)) {
+      return modelStore.selectedChatModel
+    }
+    return availableModels[0]?.key || preferredModel || 'gpt-4o-mini'
+  }
 
   const send = async (content, stream = true, chatOptions = {}) => {
     setLoading(true)
@@ -90,8 +116,8 @@ export const useChat = (options = {}) => {
       ]
 
       // 适配请求参数
-      const adaptedParams = adaptRequest('chat', {
-        model: options.model || 'gpt-4o-mini',
+      const adaptedParams = modelStore.adaptRequest('chat', {
+        model: resolveChatModel(chatOptions.model || options.model),
         messages: msgList
       })
 
@@ -107,7 +133,7 @@ export const useChat = (options = {}) => {
         for await (const chunk of streamChatCompletions(
           adaptedParams,
           abortController.signal,
-          { baseUrl: new URL(chatUrl).origin, endpoint }
+          { baseUrl: new URL(chatUrl).origin, endpoint, apiKey: modelStore.currentApiKey }
         )) {
           fullResponse += chunk
           currentResponse.value = fullResponse
@@ -150,7 +176,6 @@ export const useChat = (options = {}) => {
  */
 export const useImageGeneration = () => {
   const { loading, error, status, reset, setLoading, setError, setSuccess } = useApiState()
-  const { adaptRequest, adaptResponse } = useProvider()
   const modelStore = useModelStore()
 
   const images = ref([])
@@ -182,7 +207,7 @@ export const useImageGeneration = () => {
       }
 
       // 适配请求参数
-      const adaptedParams = adaptRequest('image', requestData)
+      const adaptedParams = modelStore.adaptRequest('image', requestData)
 
       // Call API | 调用 API
       const response = await generateImage(adaptedParams, {
@@ -191,7 +216,7 @@ export const useImageGeneration = () => {
       })
 
       // 适配响应数据
-      const adaptedData = adaptResponse('image', response)
+      const adaptedData = modelStore.adaptResponse('image', response)
 
       images.value = adaptedData
       currentImage.value = adaptedData[0] || null
@@ -213,7 +238,6 @@ export const useImageGeneration = () => {
 
 export const useVideoGeneration = () => {
   const { loading, error, status, reset, setLoading, setError, setSuccess } = useApiState()
-  const { adaptRequest, adaptResponse } = useProvider()
   const modelStore = useModelStore()
 
   const video = ref(null)
@@ -240,9 +264,15 @@ export const useVideoGeneration = () => {
     if (params.last_frame_image) requestData.last_frame_image = params.last_frame_image
     if (params.ratio) requestData.size = params.ratio
     if (params.dur) requestData.seconds = params.dur
+    if (params.quality || modelConfig?.defaultParams?.quality) requestData.quality = params.quality || modelConfig.defaultParams.quality
+    if (params.fps || modelConfig?.defaultParams?.fps) requestData.fps = params.fps || modelConfig.defaultParams.fps
+    if (params.with_audio !== undefined) requestData.with_audio = params.with_audio
+    if (modelConfig?.defaultParams?.with_audio !== undefined && requestData.with_audio === undefined) {
+      requestData.with_audio = modelConfig.defaultParams.with_audio
+    }
 
     // 适配请求参数
-    const adaptedParams = adaptRequest('video', requestData)
+    const adaptedParams = modelStore.adaptRequest('video', requestData)
 
     // Call API to create task | 调用 API 创建任务
     const task = await createVideoTask(adaptedParams, {
@@ -254,15 +284,16 @@ export const useVideoGeneration = () => {
     const isAsync = modelConfig?.async !== false
 
     // If has video URL directly, return | 如果直接有视频 URL，返回
-    if (!isAsync || task.data?.url || task.url || task.content?.video_url) {
+    const directVideoUrl = getVideoUrl(task)
+    if (!isAsync || directVideoUrl) {
       return {
         taskId: null,
-        url: task.data?.url || task.url || task.content?.video_url
+        url: directVideoUrl
       }
     }
 
     // Get task ID | 获取任务 ID
-    const newTaskId = task.id || task.task_id || task.taskId
+    const newTaskId = task.id || task.task_id || task.taskId || task.data?.id
     if (!newTaskId) {
       throw new Error('未获取到任务 ID')
     }
@@ -291,16 +322,18 @@ export const useVideoGeneration = () => {
       })
 
       // 适配轮询响应
-      const adaptedResult = adaptResponse('video', result)
+      const adaptedResult = modelStore.adaptResponse('video', result)
+
+      const taskStatus = getTaskStatus(result)
+      const videoUrl = adaptedResult.url || getVideoUrl(result)
 
       // Check for completion | 检查是否完成
-      if (result.status === 'completed' || result.status === 'succeeded' || result.data) {
-        const videoUrl = adaptedResult.url || result.data?.url || result.data?.[0]?.url || result.url || result.content?.video_url || result.video_url
-        return { ...adaptedResult, url: videoUrl,  }
+      if (taskStatus === 'completed' || taskStatus === 'succeeded' || taskStatus === 'success' || videoUrl) {
+        return { ...adaptedResult, url: videoUrl }
       }
 
       // Check for failure | 检查是否失败
-      if (result.status === 'failed' || result.status === 'error') {
+      if (taskStatus === 'failed' || taskStatus === 'fail' || taskStatus === 'error') {
         throw new Error(result.error?.message || result.message || '视频生成失败')
       }
 

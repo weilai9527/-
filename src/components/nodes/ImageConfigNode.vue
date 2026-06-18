@@ -234,7 +234,7 @@ const handleSelect = (item) => {
 const currentModelConfig = computed(() => getModelConfig(localModel.value))
 
 // Model options from Pinia store (filtered by provider) | 从 Pinia store 获取模型选项（根据渠道过滤）
-const modelOptions = computed(() => modelStore.allImageModelOptions)
+const modelOptions = computed(() => modelStore.imageModelOptions)
 
 // Display model name | 显示模型名称
 const displayModelName = computed(() => {
@@ -288,7 +288,8 @@ onMounted(() => {
 
   if (!localModel.value || !isModelAvailable) {
     // 使用 store 中的默认模型或第一个可用模型
-    localModel.value = modelStore.selectedImageModel || availableModels[0]?.key || DEFAULT_IMAGE_MODEL
+    const selectedModelAvailable = availableModels.some(m => m.key === modelStore.selectedImageModel)
+    localModel.value = selectedModelAvailable ? modelStore.selectedImageModel : availableModels[0]?.key || DEFAULT_IMAGE_MODEL
     updateNode(props.id, { model: localModel.value })
   }
 })

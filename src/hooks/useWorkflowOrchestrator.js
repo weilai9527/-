@@ -16,6 +16,7 @@ import {
   addEdge, 
   updateNode 
 } from '@/stores/canvas'
+import { useModelStore } from '@/stores/pinia'
 
 // Workflow types | 工作流类型
 const WORKFLOW_TYPES = {
@@ -177,6 +178,8 @@ const INTENT_ANALYSIS_PROMPT = `你是一个工作流分析助手。根据用户
  * Workflow Orchestrator Composable
  */
 export const useWorkflowOrchestrator = () => {
+  const modelStore = useModelStore()
+
   // State | 状态
   const isAnalyzing = ref(false)
   const isExecuting = ref(false)
@@ -307,14 +310,20 @@ export const useWorkflowOrchestrator = () => {
     isAnalyzing.value = true
     
     try {
+      const availableModels = modelStore.availableChatModels || []
+      const selectedModelSupported = availableModels.some(m => m.key === modelStore.selectedChatModel)
+      const intentModel = selectedModelSupported
+        ? modelStore.selectedChatModel
+        : availableModels[0]?.key || 'gpt-4o-mini'
+
       let response = ''
       for await (const chunk of streamChatCompletions({
-        model: 'gpt-4o',
+        model: intentModel,
         messages: [
           { role: 'system', content: INTENT_ANALYSIS_PROMPT },
           { role: 'user', content: userInput }
         ]
-      })) {
+      }, undefined, { apiKey: modelStore.currentApiKey })) {
         response += chunk
       }
       

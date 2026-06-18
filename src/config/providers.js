@@ -238,6 +238,87 @@ export const PROVIDERS = {
       }
     }
   },
+  zhipu: {
+    label: '智谱清言 (BigModel)',
+    defaultBaseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+    // 端点路径
+    endpoints: {
+      chat: '/chat/completions',
+      image: '/images/generations',
+      video: '/videos/generations',
+      videoQuery: '/async-result/{taskId}'
+    },
+    // 智谱 API 使用 OpenAI 兼容的对话补全格式
+    requestAdapter: {
+      chat: (params) => {
+        const adapted = {
+          model: params.model,
+          messages: params.messages
+        }
+        if (params.temperature !== undefined) adapted.temperature = params.temperature
+        if (params.max_tokens !== undefined) adapted.max_tokens = params.max_tokens
+        if (params.stream !== undefined) adapted.stream = params.stream
+        if (params.thinking !== undefined) adapted.thinking = params.thinking
+        if (params.reasoning_effort !== undefined) adapted.reasoning_effort = params.reasoning_effort
+        return adapted
+      },
+      image: (params) => {
+        const adapted = {
+          model: params.model,
+          prompt: params.prompt
+        }
+        if (params.size) adapted.size = params.size
+        if (params.quality) adapted.quality = params.quality
+        if (params.watermark_enabled !== undefined) adapted.watermark_enabled = params.watermark_enabled
+        if (params.user_id) adapted.user_id = params.user_id
+        return adapted
+      },
+      video: (params) => {
+        const imageUrl = []
+        if (params.first_frame_image) imageUrl.push(params.first_frame_image)
+        if (params.last_frame_image) imageUrl.push(params.last_frame_image)
+
+        const adapted = {
+          model: params.model,
+          prompt: params.prompt || '',
+          quality: params.quality || 'quality',
+          with_audio: params.with_audio ?? false,
+          fps: params.fps || 30
+        }
+        if (params.size) adapted.size = params.size
+        if (params.seconds) adapted.duration = params.seconds
+        if (imageUrl.length === 1) adapted.image_url = imageUrl[0]
+        if (imageUrl.length > 1) adapted.image_url = imageUrl
+        if (params.watermark_enabled !== undefined) adapted.watermark_enabled = params.watermark_enabled
+        if (params.request_id) adapted.request_id = params.request_id
+        if (params.user_id) adapted.user_id = params.user_id
+        return adapted
+      }
+    },
+    responseAdapter: {
+      chat: (response) => {
+        if (response.choices && response.choices.length > 0) {
+          return response.choices[0].message?.content || ''
+        }
+        return ''
+      },
+      image: (response) => {
+        const data = response.data || response
+        return (Array.isArray(data) ? data : [data]).map(item => ({
+          url: item.url || item.b64_json || '',
+          revisedPrompt: item.revised_prompt || ''
+        }))
+      },
+      video: (response) => {
+        const videoResult = response.video_result?.[0] || response.data?.video_result?.[0]
+        return {
+          url: videoResult?.url || response.data?.url || response.url || response.data?.[0]?.url || '',
+          coverImageUrl: videoResult?.cover_image_url || '',
+          ...response
+        }
+      }
+    }
+  },
 
   
 

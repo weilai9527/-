@@ -35,6 +35,20 @@ export const SEEDREAM_QUALITY_OPTIONS = [
     { label: '4K 高清', key: '4k' }
 ]
 
+export const GLM_IMAGE_SIZE_OPTIONS = [
+    { label: '1:1', key: '1280x1280' },
+    { label: '3:2', key: '1568x1056' },
+    { label: '2:3', key: '1056x1568' },
+    { label: '4:3', key: '1472x1088' },
+    { label: '3:4', key: '1088x1472' },
+    { label: '16:9', key: '1728x960' },
+    { label: '9:16', key: '960x1728' }
+]
+
+export const GLM_IMAGE_QUALITY_OPTIONS = [
+    { label: '高清', key: 'hd' }
+]
+
 export const BANANA_SIZE_OPTIONS = [
     { label: '16:9', key: '16x9' },
     { label: '4:3', key: '4x3' },
@@ -47,6 +61,19 @@ export const BANANA_SIZE_OPTIONS = [
 
 // Image generation models | 图片生成模型
 export const IMAGE_MODELS = [
+    {
+        label: 'GLM-Image',
+        key: 'glm-image',
+        provider: ['zhipu'],
+        sizes: GLM_IMAGE_SIZE_OPTIONS.map(s => s.key),
+        qualities: GLM_IMAGE_QUALITY_OPTIONS,
+        getSizesByQuality: () => GLM_IMAGE_SIZE_OPTIONS,
+        defaultParams: {
+            size: '1280x1280',
+            quality: 'hd',
+            style: 'vivid'
+        }
+    },
     {
         label: 'Nano Banana 2',
         key: 'nano-banana-2',
@@ -116,8 +143,28 @@ export const SEEDANCE_RESOLUTION_OPTIONS = [
     { label: '1080p', key: '1080p' }
 ]
 
+export const COGVIDEOX_SIZE_OPTIONS = [
+    { label: '16:9 720p', key: '1280x720' },
+    { label: '9:16 720p', key: '720x1280' },
+    { label: '1:1', key: '1024x1024' },
+    { label: '16:9 1080p', key: '1920x1080' },
+    { label: '9:16 1080p', key: '1080x1920' },
+    { label: '17:9 2K', key: '2048x1080' },
+    { label: '16:9 4K', key: '3840x2160' }
+]
+
 // Video generation models | 视频生成模型
 export const VIDEO_MODELS = [
+    {
+        label: 'CogVideoX-3',
+        key: 'cogvideox-3',
+        provider: ['zhipu'],
+        type: 't2v+i2v',
+        async: true,
+        ratios: COGVIDEOX_SIZE_OPTIONS.map(s => s.key),
+        durs: [{ label: '5 秒', key: 5 }, { label: '10 秒', key: 10 }],
+        defaultParams: { ratio: '1920x1080', duration: 5, quality: 'quality', fps: 30 }
+    },
      // Seedance 模型 - 1.5 Pro
     {
         label: 'Seedance 1.5 Pro (图文视频)',
@@ -221,6 +268,10 @@ export const CHAT_MODELS = [
     { label: 'GPT-4o Mini', key: 'gpt-4o-mini', provider: ['openai'] },
     { label: 'GPT-4o', key: 'gpt-4o', provider: ['openai'] },
     { label: 'GPT-5.2', key: 'gpt-5.2', provider: ['openai'] },
+    { label: 'GLM-5.2', key: 'glm-5.2', provider: ['zhipu'] },
+    { label: 'GLM-5.1', key: 'glm-5.1', provider: ['zhipu'] },
+    { label: 'GLM-4.7 Flash', key: 'glm-4.7-flash', provider: ['zhipu'] },
+    { label: 'GLM-4.5 Flash', key: 'glm-4.5-flash', provider: ['zhipu'] },
     { label: 'DeepSeek Chat', key: 'deepseek-chat', provider: ['openai', 'chatfire'] },
     { label: '豆包 Seed Flash', key: 'doubao-seed-1-6-flash-250615', provider: ['chatfire'] },
     { label: 'Gemini 3 Pro', key: 'gemini-3-pro', provider: ['openai'] }
