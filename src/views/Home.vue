@@ -73,15 +73,42 @@
 
       <!-- My projects section | 我的项目区域 -->
       <section ref="projectsSection">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between gap-3 mb-4">
           <h2 class="text-lg font-semibold text-[var(--text-primary)]">我的项目</h2>
-          <button 
-            @click="createNewProject"
-            class="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white transition-colors"
-          >
-            <n-icon :size="16"><AddOutline /></n-icon>
-            新建项目
-          </button>
+          <div class="flex items-center gap-2">
+            <input
+              ref="backupInputRef"
+              type="file"
+              accept="application/json,application/zip,.json,.zip"
+              class="hidden"
+              @change="handleImportBackup"
+            />
+            <button
+              @click="triggerImportBackup"
+              :disabled="isBackupBusy"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[var(--border-color)] hover:border-[var(--accent-color)] transition-colors"
+              title="导入项目备份"
+            >
+              <n-icon :size="16"><CloudUploadOutline /></n-icon>
+              <span class="hidden sm:inline">导入</span>
+            </button>
+            <button
+              @click="handleExportBackup"
+              :disabled="projects.length === 0 || isBackupBusy"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[var(--border-color)] hover:border-[var(--accent-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="导出完整项目备份"
+            >
+              <n-icon :size="16"><CloudDownloadOutline /></n-icon>
+              <span class="hidden sm:inline">{{ isBackupBusy ? '处理中' : '备份' }}</span>
+            </button>
+            <button 
+              @click="createNewProject"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white transition-colors"
+            >
+              <n-icon :size="16"><AddOutline /></n-icon>
+              新建项目
+            </button>
+          </div>
         </div>
         
         <!-- Empty state | 空状态 -->
@@ -212,6 +239,8 @@ import {
   EllipsisHorizontalOutline,
   CreateOutline,
   CopyOutline,
+  CloudDownloadOutline,
+  CloudUploadOutline,
   SettingsOutline,
   TrashOutline
 } from '@vicons/ionicons5'
@@ -221,8 +250,11 @@ import {
   createProject, 
   deleteProject, 
   duplicateProject, 
+  importProjectsBackup,
   renameProject 
 } from '../stores/projects'
+import { hydrateProjectsWithLocalAssets } from '../utils/assetStorage'
+import { createFullBackupZip, readBackupFile } from '../utils/fullBackup'
 import { useModelStore } from '../stores/pinia'
 import ApiSettings from '../components/ApiSettings.vue'
 import AppHeader from '../components/AppHeader.vue'
@@ -276,6 +308,8 @@ const inputText = ref('')
 const showRenameModal = ref(false)
 const renameValue = ref('')
 const renameTargetId = ref(null)
+const backupInputRef = ref(null)
+const isBackupBusy = ref(false)
 
 // Suggestions tags | 建议标签
 const suggestions = [
@@ -311,6 +345,70 @@ const getProjectActions = (project) => [
   { type: 'divider' },
   { label: '删除', key: 'delete', icon: () => h(NIcon, null, { default: () => h(TrashOutline) }) }
 ]
+
+// Trigger backup file picker | 触发备份文件选择
+const triggerImportBackup = () => {
+  backupInputRef.value?.click()
+}
+
+// Export all projects to a local JSON backup | 导出所有项目到本地 JSON 备份
+const handleExportBackup = async () => {
+  if (projects.value.length === 0) {
+    window.$message?.warning('暂无项目可备份')
+    return
+  }
+
+  isBackupBusy.value = true
+  try {
+    const backup = await createFullBackupZip(projects.value)
+    const url = URL.createObjectURL(backup.blob)
+    const link = document.createElement('a')
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
+
+    link.href = url
+    link.download = `huobao-canvas-full-backup-${timestamp}.zip`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+
+    if (backup.failedAssetCount > 0) {
+      window.$message?.warning(`已备份 ${backup.projectCount} 个项目和 ${backup.assetCount} 个素材，${backup.failedAssetCount} 个素材保留原链接`)
+    } else {
+      window.$message?.success(`已完整备份 ${backup.projectCount} 个项目和 ${backup.assetCount} 个素材`)
+    }
+  } catch (err) {
+    window.$message?.error(err.message || '备份失败')
+  } finally {
+    isBackupBusy.value = false
+  }
+}
+
+// Import projects from a local JSON backup | 从本地 JSON 备份导入项目
+const handleImportBackup = async (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  isBackupBusy.value = true
+  try {
+    const { payload, importedAssetCount, missingAssetCount } = await readBackupFile(file)
+    const result = importProjectsBackup(payload)
+    projects.value = await hydrateProjectsWithLocalAssets(projects.value)
+
+    if (missingAssetCount > 0) {
+      window.$message?.warning(`已导入 ${result.imported} 个项目和 ${importedAssetCount} 个素材，${missingAssetCount} 个素材缺失`)
+    } else if (importedAssetCount > 0) {
+      window.$message?.success(`已导入 ${result.imported} 个项目和 ${importedAssetCount} 个素材`)
+    } else {
+      window.$message?.success(`已导入 ${result.imported} 个项目`)
+    }
+  } catch (err) {
+    window.$message?.error(err.message || '导入失败，请确认备份文件是否正确')
+  } finally {
+    isBackupBusy.value = false
+    event.target.value = ''
+  }
+}
 
 // Handle project action | 处理项目操作
 const handleProjectAction = (key, project) => {

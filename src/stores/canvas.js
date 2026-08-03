@@ -5,6 +5,7 @@
 import { ref, watch } from 'vue'
 import { updateProjectCanvas, getProjectCanvas } from './projects'
 import { IMAGE_MODELS, VIDEO_MODELS, CHAT_MODELS, DEFAULT_IMAGE_MODEL, DEFAULT_VIDEO_MODEL, DEFAULT_CHAT_MODEL } from '../config/models'
+import { hydrateNodesWithLocalAssets } from '../utils/assetStorage'
 
 // Node ID counter | 节点ID计数器
 let nodeId = 0
@@ -431,6 +432,13 @@ export const loadProject = (projectId) => {
     nodes.value = canvasData.nodes || []
     edges.value = canvasData.edges || []
     canvasViewport.value = canvasData.viewport || { x: 100, y: 50, zoom: 0.8 }
+    hydrateNodesWithLocalAssets(nodes.value).then((hydratedNodes) => {
+      if (currentProjectId.value === projectId) {
+        nodes.value = hydratedNodes
+      }
+    }).catch((err) => {
+      console.warn('Failed to hydrate canvas local assets:', err)
+    })
     
     // Update node ID counter | 更新节点ID计数器
     const maxId = nodes.value.reduce((max, node) => {

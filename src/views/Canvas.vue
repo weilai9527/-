@@ -278,7 +278,7 @@ import { nodes, edges, addNode, addNodes, addEdge, addEdges, updateNode, initSam
 import { loadAllModels } from '../stores/models'
 import { useChat, useWorkflowOrchestrator } from '../hooks'
 import { useModelStore } from '../stores/pinia'
-import { projects, initProjectsStore, updateProject, renameProject, currentProject } from '../stores/projects'
+import { projects, initProjectsStore, updateProject, renameProject, currentProject, deleteProject, duplicateProject } from '../stores/projects'
 
 // API Settings component | API 设置组件
 import ApiSettings from '../components/ApiSettings.vue'
@@ -648,8 +648,13 @@ const handleProjectAction = (key) => {
       showRenameModal.value = true
       break
     case 'duplicate':
-      // TODO: Implement duplicate
-      window.$message?.info('复制功能开发中')
+      const newId = duplicateProject(route.params.id)
+      if (newId) {
+        window.$message?.success('项目已复制')
+        router.push(`/canvas/${newId}`)
+      } else {
+        window.$message?.error('复制失败')
+      }
       break
     case 'delete':
       showDeleteModal.value = true

@@ -3,12 +3,45 @@
  * Manages projects with localStorage persistence
  */
 import { ref, computed, watch } from 'vue'
+import { hydrateProjectsWithLocalAssets } from '../utils/assetStorage'
 
 // Storage key | 存储键
 const STORAGE_KEY = 'ai-canvas-projects'
+const BACKUP_APP = 'huobao-canvas'
+const BACKUP_VERSION = 1
 
 // Generate unique ID | 生成唯一ID
 const generateId = () => `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+const defaultCanvasData = () => ({
+  nodes: [],
+  edges: [],
+  viewport: { x: 100, y: 50, zoom: 0.8 }
+})
+
+const normalizeDate = (value, fallback = new Date()) => {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? fallback : date
+}
+
+const normalizeProject = (project) => {
+  const now = new Date()
+  const canvasData = project?.canvasData || {}
+
+  return {
+    ...project,
+    id: typeof project?.id === 'string' && project.id ? project.id : generateId(),
+    name: typeof project?.name === 'string' && project.name.trim() ? project.name.trim() : '导入项目',
+    thumbnail: typeof project?.thumbnail === 'string' ? project.thumbnail : '',
+    createdAt: normalizeDate(project?.createdAt, now),
+    updatedAt: normalizeDate(project?.updatedAt, now),
+    canvasData: {
+      nodes: Array.isArray(canvasData.nodes) ? canvasData.nodes : [],
+      edges: Array.isArray(canvasData.edges) ? canvasData.edges : [],
+      viewport: canvasData.viewport || defaultCanvasData().viewport
+    }
+  }
+}
 
 // Projects list | 项目列表
 export const projects = ref([])
@@ -35,6 +68,11 @@ export const loadProjects = () => {
         createdAt: new Date(p.createdAt),
         updatedAt: new Date(p.updatedAt)
       }))
+      hydrateProjectsWithLocalAssets(projects.value).then((hydratedProjects) => {
+        projects.value = hydratedProjects
+      }).catch((err) => {
+        console.warn('Failed to hydrate local assets:', err)
+      })
     }
   } catch (err) {
     console.error('Failed to load projects:', err)
@@ -56,10 +94,11 @@ const cleanNodeForStorage = (node) => {
     delete cleanedData.base64
   }
   
-  // If url is a base64 data URL, keep it only if it's from external source | 如果 url 是 base64，只有外部来源才保留
-  if (cleanedData.url?.startsWith?.('data:')) {
-    // For uploaded images, we can't persist them in localStorage | 上传的图片无法持久化到 localStorage
-    delete cleanedData.url
+  // Remove non-persistent browser URLs | 移除无法持久化的浏览器临时 URL
+  for (const field of ['url', 'thumbnail', 'refImage']) {
+    if (cleanedData[field]?.startsWith?.('data:') || cleanedData[field]?.startsWith?.('blob:')) {
+      delete cleanedData[field]
+    }
   }
   
   // Remove mask data | 移除蒙版数据
@@ -81,7 +120,7 @@ const cleanProjectForStorage = (project) => {
       nodes: project.canvasData.nodes?.map(cleanNodeForStorage) || []
     } : project.canvasData,
     // Remove base64 thumbnails | 移除 base64 缩略图
-    thumbnail: project.thumbnail?.startsWith?.('data:') ? '' : project.thumbnail
+    thumbnail: project.thumbnail?.startsWith?.('data:') || project.thumbnail?.startsWith?.('blob:') ? '' : project.thumbnail
   }
 }
 
@@ -127,6 +166,56 @@ export const saveProjects = () => {
     } else {
       console.error('Failed to save projects:', err)
     }
+  }
+}
+
+/**
+ * Create a local backup payload | 创建本地备份数据
+ * API keys and provider settings are intentionally excluded.
+ */
+export const createProjectsBackup = () => ({
+  app: BACKUP_APP,
+  version: BACKUP_VERSION,
+  exportedAt: new Date().toISOString(),
+  projects: projects.value.map(cleanProjectForStorage)
+})
+
+/**
+ * Import projects from a backup payload | 从备份数据导入项目
+ * Merges into the current project list and never overwrites existing projects.
+ */
+export const importProjectsBackup = (payload) => {
+  const incomingProjects = Array.isArray(payload) ? payload : payload?.projects
+  if (!Array.isArray(incomingProjects)) {
+    throw new Error('备份文件格式不正确')
+  }
+
+  const usedIds = new Set(projects.value.map(project => project.id))
+  const importedProjects = incomingProjects.map((project) => {
+    const normalized = normalizeProject(project)
+
+    if (!usedIds.has(normalized.id)) {
+      usedIds.add(normalized.id)
+      return normalized
+    }
+
+    const now = new Date()
+    const importedProject = {
+      ...normalized,
+      id: generateId(),
+      name: `${normalized.name} (导入)`,
+      createdAt: now,
+      updatedAt: now
+    }
+    usedIds.add(importedProject.id)
+    return importedProject
+  })
+
+  projects.value = [...importedProjects, ...projects.value]
+  saveProjects()
+
+  return {
+    imported: importedProjects.length
   }
 }
 
@@ -373,6 +462,8 @@ if (typeof window !== 'undefined') {
     projects,
     loadProjects,
     saveProjects,
+    createProjectsBackup,
+    importProjectsBackup,
     createProject,
     deleteProject
   }
