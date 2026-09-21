@@ -12,26 +12,26 @@
       <div class="flex items-center justify-between">
         <span
           v-if="!isEditingLabel"
-          @dblclick="startEditLabel"
           class="text-sm font-medium text-[var(--text-secondary)] cursor-text hover:bg-[var(--bg-tertiary)] px-1 rounded transition-colors"
           title="双击编辑名称"
+          @dblclick="startEditLabel"
         >{{ data.label }}</span>
         <input
           v-else
           ref="labelInputRef"
           v-model="editingLabelValue"
+          class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] px-1 rounded outline-none border border-blue-500"
           @blur="finishEditLabel"
           @keydown.enter="finishEditLabel"
           @keydown.escape="cancelEditLabel"
-          class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] px-1 rounded outline-none border border-blue-500"
         />
         <div class="flex items-center gap-1">
-          <button @click="handleDuplicate" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="复制节点">
+          <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="复制节点" @click="handleDuplicate">
             <n-icon :size="14">
               <CopyOutline />
             </n-icon>
           </button>
-          <button @click="handleDelete" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="删除节点">
+          <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="删除节点" @click="handleDelete">
             <n-icon :size="14">
               <TrashOutline />
             </n-icon>
@@ -106,8 +106,8 @@
     </div>
 
     <!-- Handles | 连接点 -->
-    <NodeHandleMenu :nodeId="id" nodeType="video" :visible="showHandleMenu" :operations="operations" @select="handleSelect" />
-    <Handle type="target" :position="Position.Left" id="left" class="!bg-[var(--accent-color)]" />
+    <NodeHandleMenu :node-id="id" node-type="video" :visible="showHandleMenu" :operations="operations" @select="handleSelect" />
+    <Handle id="left" type="target" :position="Position.Left" class="!bg-[var(--accent-color)]" />
     </div>
 
     <!-- Right side - Action buttons | 右侧 - 操作按钮 -->
@@ -117,16 +117,16 @@
     >
       <!-- Preview button | 预览按钮 -->
       <button 
-        @click="handlePreview"
         class="action-btn group p-2 bg-white rounded-lg transition-all border border-gray-200 flex items-center gap-0 hover:gap-1.5 w-max"
+        @click="handlePreview"
       >
         <n-icon :size="16" class="text-gray-600"><EyeOutline /></n-icon>
         <span class="text-xs text-gray-600 max-w-0 overflow-hidden group-hover:max-w-[80px] transition-all duration-200 whitespace-nowrap">预览</span>
       </button>
       <!-- Download button | 下载按钮 -->
       <button 
-        @click="handleDownload"
         class="action-btn group p-2 bg-white rounded-lg transition-all border border-gray-200 flex items-center gap-0 hover:gap-1.5 w-max"
+        @click="handleDownload"
       >
         <n-icon :size="16" class="text-gray-600"><DownloadOutline /></n-icon>
         <span class="text-xs text-gray-600 max-w-0 overflow-hidden group-hover:max-w-[80px] transition-all duration-200 whitespace-nowrap">下载</span>
@@ -146,6 +146,7 @@ import { NIcon, NSpin } from 'naive-ui'
 import { TrashOutline, ExpandOutline, VideocamOutline, CopyOutline, CloseCircleOutline, DownloadOutline, EyeOutline, CreateOutline } from '@vicons/ionicons5'
 import { updateNode, removeNode, duplicateNode, addNode, addEdge, nodes } from '../../stores/canvas'
 import { useVideoGeneration } from '../../hooks/useApi'
+import { updateTaskStatus, succeedTask, failTask } from '../../stores/tasks'
 import NodeHandleMenu from './NodeHandleMenu.vue'
 
 const props = defineProps({
@@ -158,7 +159,6 @@ const { updateNodeInternals } = useVueFlow()
 
 // Get pollVideoTask from useVideoGeneration | 从 useVideoGeneration 获取轮询函数
 const { pollVideoTask } = useVideoGeneration()
-
 // Hover state | 悬浮状态
 const showActions = ref(false)
 const showHandleMenu = ref(false)
@@ -197,6 +197,10 @@ const startPolling = async (taskId) => {
 
   isPolling.value = true
 
+  // Sync task center status to polling | 同步任务中心状态为轮询中
+  const taskRecordId = props.data?.taskRecordId
+  if (taskRecordId) updateTaskStatus(taskRecordId, 'polling')
+
   try {
     const result = await pollVideoTask(taskId, (attempt, percentage) => {
       // 更新进度
@@ -213,6 +217,7 @@ const startPolling = async (taskId) => {
       label: '视频生成',
       taskId: null  // 清除 taskId
     })
+    if (taskRecordId) succeedTask(taskRecordId, result.url)
     window.$message?.success('视频生成成功')
   } catch (err) {
     // 轮询失败
@@ -222,6 +227,7 @@ const startPolling = async (taskId) => {
       label: '生成失败',
       taskId: null  // 清除 taskId
     })
+    if (taskRecordId) failTask(taskRecordId, err)
     window.$message?.error(err.message || '视频生成失败')
   } finally {
     isPolling.value = false

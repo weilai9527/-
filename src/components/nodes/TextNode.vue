@@ -9,26 +9,26 @@
       <div class="flex items-center justify-between px-3 py-2 border-b border-[var(--border-color)]">
         <span
           v-if="!isEditingLabel"
-          @dblclick="startEditLabel"
           class="text-sm font-medium text-[var(--text-secondary)] cursor-text hover:bg-[var(--bg-tertiary)] px-1 rounded transition-colors"
           title="双击编辑名称"
+          @dblclick="startEditLabel"
         >{{ data.label }}</span>
         <input
           v-else
           ref="labelInputRef"
           v-model="editingLabelValue"
+          class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] px-1 rounded outline-none border border-blue-500"
           @blur="finishEditLabel"
           @keydown.enter="finishEditLabel"
           @keydown.escape="cancelEditLabel"
-          class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] px-1 rounded outline-none border border-blue-500"
         />
         <div class="flex items-center gap-1">
-          <button @click="handleDuplicate" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="复制节点">
+          <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="复制节点" @click="handleDuplicate">
             <n-icon :size="14">
               <CopyOutline />
             </n-icon>
           </button>
-          <button @click="handleDelete" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="删除节点">
+          <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="删除节点" @click="handleDelete">
             <n-icon :size="14">
               <TrashOutline />
             </n-icon>
@@ -43,26 +43,26 @@
 
       <!-- Content | 内容 -->
       <div class="p-3">
-        <div class="textarea-wrapper" ref="textareaWrapper">
+        <div ref="textareaWrapper" class="textarea-wrapper">
           <!-- 可编辑的文本区域（支持 @ 引用图片显示）参考 MaterialInput -->
           <div
             ref="editorRef"
             class="editor-content"
             contenteditable="true"
+            :data-placeholder="placeholder"
             @input="handleInput"
             @keydown="handleKeydown"
             @paste="handlePaste"
             @blur="updateContent"
             @wheel.stop
             @mousedown.stop
-            :data-placeholder="placeholder"
           ></div>
         </div>
         <!-- Polish button | 润色按钮 -->
         <button
-          @click="handlePolish"
           :disabled="isPolishing || !plainText.trim()"
           class="mt-2 px-3 py-1.5 text-xs rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--accent-color)] hover:text-white border border-[var(--border-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          @click="handlePolish"
         >
           <n-spin v-if="isPolishing" :size="12" />
           <span v-else>✨</span>
@@ -71,8 +71,8 @@
       </div>
 
       <!-- Handles | 连接点 -->
-      <NodeHandleMenu :nodeId="id" nodeType="text" :visible="showHandleMenu" :operations="operations" @select="handleSelect" />
-      <Handle type="target" :position="Position.Left" id="left" class="!bg-[var(--accent-color)]" />
+      <NodeHandleMenu :node-id="id" node-type="text" :visible="showHandleMenu" :operations="operations" @select="handleSelect" />
+      <Handle id="left" type="target" :position="Position.Left" class="!bg-[var(--accent-color)]" />
 
     </div>
 

@@ -4,11 +4,29 @@
     <!-- Header | 顶部导航 -->
     <AppHeader>
       <template #right>
-        <button 
-          @click="showApiSettings = true"
+        <button
+          class="p-2 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors text-[var(--text-primary)]"
+          title="素材库"
+          @click="goToAssets"
+        >
+          <n-icon :size="20"><ImagesOutline /></n-icon>
+        </button>
+        <button
+          class="p-2 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors relative text-[var(--text-primary)]"
+          title="任务中心"
+          @click="goToTasks"
+        >
+          <n-icon :size="20"><ListOutline /></n-icon>
+          <span
+            v-if="runningCount > 0"
+            class="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[var(--accent-color)] text-white text-[10px] flex items-center justify-center"
+          >{{ runningCount }}</span>
+        </button>
+        <button
           class="p-2 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors"
           :class="{ 'text-[var(--accent-color)]': isApiConfigured }"
           title="API 设置"
+          @click="showApiSettings = true"
         >
           <n-icon :size="20"><SettingsOutline /></n-icon>
         </button>
@@ -44,8 +62,8 @@
               </div>
               <div class="flex items-center gap-3">
                 <button 
-                  @click="handleCreateWithInput"
                   class="w-8 h-8 rounded-xl bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] flex items-center justify-center transition-colors"
+                  @click="handleCreateWithInput"
                 >
                   <n-icon :size="20" color="white"><SendOutline /></n-icon>
                 </button>
@@ -59,8 +77,8 @@
             <button 
               v-for="tag in suggestions" 
               :key="tag"
-              @click="inputText = tag"
               class="px-3 py-1.5 text-sm rounded-full bg-[var(--bg-secondary)] border border-[var(--border-color)] hover:border-[var(--accent-color)] transition-colors"
+              @click="inputText = tag"
             >
               {{ tag }}
             </button>
@@ -84,26 +102,26 @@
               @change="handleImportBackup"
             />
             <button
-              @click="triggerImportBackup"
               :disabled="isBackupBusy"
               class="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[var(--border-color)] hover:border-[var(--accent-color)] transition-colors"
               title="导入项目备份"
+              @click="triggerImportBackup"
             >
               <n-icon :size="16"><CloudUploadOutline /></n-icon>
               <span class="hidden sm:inline">导入</span>
             </button>
             <button
-              @click="handleExportBackup"
               :disabled="projects.length === 0 || isBackupBusy"
               class="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[var(--border-color)] hover:border-[var(--accent-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="导出完整项目备份"
+              @click="handleExportBackup"
             >
               <n-icon :size="16"><CloudDownloadOutline /></n-icon>
               <span class="hidden sm:inline">{{ isBackupBusy ? '处理中' : '备份' }}</span>
             </button>
             <button 
-              @click="createNewProject"
               class="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white transition-colors"
+              @click="createNewProject"
             >
               <n-icon :size="16"><AddOutline /></n-icon>
               新建项目
@@ -116,8 +134,8 @@
           <n-icon :size="48" class="text-[var(--text-secondary)] mb-4"><FolderOutline /></n-icon>
           <p class="text-[var(--text-secondary)] mb-4">还没有项目，创建一个开始吧</p>
           <button 
-            @click="createNewProject"
             class="px-4 py-2 text-sm rounded-lg bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white transition-colors"
+            @click="createNewProject"
           >
             创建第一个项目
           </button>
@@ -132,8 +150,8 @@
           >
             <!-- Project card | 项目卡片 -->
             <div 
-              @click="openProject(project)"
               class="cursor-pointer"
+              @click="openProject(project)"
             >
               <div 
                 class="aspect-video rounded-xl overflow-hidden bg-[var(--bg-tertiary)] mb-2 border border-[var(--border-color)] relative"
@@ -175,10 +193,72 @@
             
             <!-- Project actions | 项目操作 -->
             <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-              <n-dropdown :options="getProjectActions(project)" @select="(key) => handleProjectAction(key, project)" placement="bottom-end">
-                <button 
-                  @click.stop
+              <n-dropdown :options="getProjectActions(project)" placement="bottom-end" @select="(key) => handleProjectAction(key, project)">
+                <button
                   class="p-1.5 bg-white/90 dark:bg-gray-800/90 rounded-lg shadow hover:bg-white dark:hover:bg-gray-800 transition-colors"
+                  @click.stop
+                >
+                  <n-icon :size="16"><EllipsisHorizontalOutline /></n-icon>
+                </button>
+              </n-dropdown>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- My templates section | 我的模板区域 -->
+      <section class="mt-12">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <h2 class="text-lg font-semibold text-[var(--text-primary)]">我的模板</h2>
+          <div class="flex items-center gap-2">
+            <input
+              ref="templateInputRef"
+              type="file"
+              accept="application/json,.json"
+              class="hidden"
+              @change="handleImportTemplate"
+            />
+            <button
+              class="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[var(--border-color)] hover:border-[var(--accent-color)] transition-colors"
+              title="导入模板 JSON"
+              @click="templateInputRef?.click()"
+            >
+              <n-icon :size="16"><CloudUploadOutline /></n-icon>
+              <span class="hidden sm:inline">导入模板</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty state | 空状态 -->
+        <div v-if="templates.length === 0" class="text-center py-10 bg-[var(--bg-secondary)] rounded-xl border border-dashed border-[var(--border-color)]">
+          <n-icon :size="40" class="text-[var(--text-secondary)] mb-3"><GridOutline /></n-icon>
+          <p class="text-[var(--text-secondary)] text-sm">还没有模板。在画布页通过项目菜单「保存为模板」创建。</p>
+        </div>
+
+        <!-- Templates grid | 模板网格 -->
+        <div v-else class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div
+            v-for="template in templates"
+            :key="template.id"
+            class="group relative bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] p-4 hover:border-[var(--accent-color)] transition-colors"
+          >
+            <div class="cursor-pointer" @click="createFromTemplate(template)">
+              <div class="flex items-center gap-2 mb-2">
+                <n-icon :size="18" class="text-[var(--accent-color)]"><GridOutline /></n-icon>
+                <p class="text-sm font-medium text-[var(--text-primary)] truncate">{{ template.name }}</p>
+              </div>
+              <p class="text-xs text-[var(--text-secondary)] line-clamp-2 min-h-[2rem]">
+                {{ template.description || `${template.canvasData.nodes.length} 个节点` }}
+              </p>
+              <p class="text-xs text-[var(--text-tertiary)] mt-1">{{ formatDate(template.createdAt) }}</p>
+            </div>
+
+            <!-- Template actions | 模板操作 -->
+            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <n-dropdown :options="templateActionOptions" placement="bottom-end" @select="(key) => handleTemplateAction(key, template)">
+                <button
+                  class="p-1.5 bg-white/90 dark:bg-gray-800/90 rounded-lg shadow hover:bg-white dark:hover:bg-gray-800 transition-colors"
+                  @click.stop
                 >
                   <n-icon :size="16"><EllipsisHorizontalOutline /></n-icon>
                 </button>
@@ -192,16 +272,16 @@
     <!-- Left sidebar | 左侧边栏 -->
     <aside class="fixed left-4 top-1/2 -translate-y-1/2 hidden md:flex flex-col gap-2 p-2 bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] shadow-sm">
       <button 
-        @click="createNewProject"
         class="p-2 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors"
         title="新建项目"
+        @click="createNewProject"
       >
         <n-icon :size="20"><DocumentOutline /></n-icon>
       </button>
       <button 
-        @click="scrollToProjects"
         class="p-2 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors"
         title="我的项目"
+        @click="scrollToProjects"
       >
         <n-icon :size="20"><FolderOutline /></n-icon>
       </button>
@@ -229,9 +309,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { NIcon, NDropdown, NModal, NInput, NButton, useDialog } from 'naive-ui'
-import { 
-  AddOutline, 
-  ImageOutline, 
+import {
+  AddOutline,
+  ImageOutline,
+  ImagesOutline,
+  ListOutline,
+  GridOutline,
   SendOutline,
   RefreshOutline,
   DocumentOutline,
@@ -244,24 +327,39 @@ import {
   SettingsOutline,
   TrashOutline
 } from '@vicons/ionicons5'
-import { 
-  projects, 
-  initProjectsStore, 
-  createProject, 
-  deleteProject, 
-  duplicateProject, 
+import {
+  projects,
+  initProjectsStore,
+  createProject,
+  updateProject,
+  deleteProject,
+  duplicateProject,
   importProjectsBackup,
-  renameProject 
+  renameProject
 } from '../stores/projects'
+import {
+  templates,
+  getTemplateCanvas,
+  exportTemplate,
+  importTemplate,
+  deleteTemplate
+} from '../stores/templates'
 import { hydrateProjectsWithLocalAssets } from '../utils/assetStorage'
 import { createFullBackupZip, readBackupFile } from '../utils/fullBackup'
 import { useModelStore } from '../stores/pinia'
+import { runningTasks } from '../stores/tasks'
 import ApiSettings from '../components/ApiSettings.vue'
 import AppHeader from '../components/AppHeader.vue'
 
 const router = useRouter()
 const dialog = useDialog()
 const modelStore = useModelStore()
+
+// Task center badge | 任务中心角标
+const runningCount = computed(() => runningTasks.value.length)
+
+const goToAssets = () => router.push('/assets')
+const goToTasks = () => router.push('/tasks')
 
 // API Settings state | API 设置状态
 const showApiSettings = ref(false)
@@ -346,6 +444,71 @@ const getProjectActions = (project) => [
   { label: '删除', key: 'delete', icon: () => h(NIcon, null, { default: () => h(TrashOutline) }) }
 ]
 
+// ========== Templates | 模板 ==========
+const templateInputRef = ref(null)
+
+const templateActionOptions = [
+  { label: '导出 JSON', key: 'export', icon: () => h(NIcon, null, { default: () => h(CloudDownloadOutline) }) },
+  { type: 'divider' },
+  { label: '删除', key: 'delete', icon: () => h(NIcon, null, { default: () => h(TrashOutline) }) }
+]
+
+// Create project from template | 从模板创建项目
+const createFromTemplate = (template) => {
+  const canvas = getTemplateCanvas(template.id)
+  if (!canvas) {
+    window.$message?.error('模板数据异常')
+    return
+  }
+  const id = createProject(`${template.name} 项目`)
+  updateProject(id, { canvasData: canvas })
+  window.$message?.success(`已基于模板「${template.name}」创建项目`)
+  router.push(`/canvas/${id}`)
+}
+
+// Handle template dropdown actions | 处理模板下拉操作
+const handleTemplateAction = (key, template) => {
+  if (key === 'export') {
+    const json = exportTemplate(template.id)
+    if (!json) return
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `template-${template.name}.json`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  } else if (key === 'delete') {
+    dialog.warning({
+      title: '删除模板',
+      content: `确定要删除模板「${template.name}」吗？`,
+      positiveText: '删除',
+      negativeText: '取消',
+      onPositiveClick: () => {
+        deleteTemplate(template.id)
+        window.$message?.success('模板已删除')
+      }
+    })
+  }
+}
+
+// Import template from JSON file | 从 JSON 文件导入模板
+const handleImportTemplate = async (event) => {
+  const file = event.target.files?.[0]
+  event.target.value = ''
+  if (!file) return
+
+  try {
+    const text = await file.text()
+    importTemplate(text)
+    window.$message?.success('模板导入成功')
+  } catch (err) {
+    window.$message?.error(err.message || '模板导入失败')
+  }
+}
+
 // Trigger backup file picker | 触发备份文件选择
 const triggerImportBackup = () => {
   backupInputRef.value?.click()
@@ -418,12 +581,13 @@ const handleProjectAction = (key, project) => {
       renameValue.value = project.name
       showRenameModal.value = true
       break
-    case 'duplicate':
+    case 'duplicate': {
       const newId = duplicateProject(project.id)
       if (newId) {
         window.$message?.success('项目已复制')
       }
       break
+    }
     case 'delete':
       dialog.warning({
         title: '删除项目',

@@ -14,8 +14,8 @@
     >
       <n-dropdown 
         :options="imageRoleOptions" 
-        @select="handleRoleSelect"
         size="small"
+        @select="handleRoleSelect"
       >
         <button 
           class="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow transition-shadow"

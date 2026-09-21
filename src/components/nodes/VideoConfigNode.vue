@@ -2,32 +2,33 @@
   <!-- Video config node wrapper | 视频配置节点包裹层 -->
   <div class="video-config-node-wrapper relative" @mouseenter="showHandleMenu = true" @mouseleave="showHandleMenu = false">
     <!-- Video config node | 视频配置节点 -->
-    <div class="video-config-node bg-[var(--bg-secondary)] rounded-xl border min-w-[300px] transition-all duration-200"
+    <div
+class="video-config-node bg-[var(--bg-secondary)] rounded-xl border min-w-[300px] transition-all duration-200"
       :class="data.selected ? 'border-1 border-blue-500 shadow-lg shadow-blue-500/20' : 'border border-[var(--border-color)]'">
       <!-- Header | 头部 -->
       <div class="flex items-center justify-between px-3 py-2 border-b border-[var(--border-color)]">
         <span
           v-if="!isEditingLabel"
-          @dblclick="startEditLabel"
           class="text-sm font-medium text-[var(--text-secondary)] cursor-text hover:bg-[var(--bg-tertiary)] px-1 rounded transition-colors"
           title="双击编辑名称"
+          @dblclick="startEditLabel"
         >{{ data.label || '视频生成' }}</span>
         <input
           v-else
           ref="labelInputRef"
           v-model="editingLabelValue"
+          class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] px-1 rounded outline-none border border-blue-500"
           @blur="finishEditLabel"
           @keydown.enter="finishEditLabel"
           @keydown.escape="cancelEditLabel"
-          class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] px-1 rounded outline-none border border-blue-500"
         />
         <div class="flex items-center gap-1">
-          <button @click="handleDuplicate" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="复制节点">
+          <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="复制节点" @click="handleDuplicate">
             <n-icon :size="14">
               <CopyOutline />
             </n-icon>
           </button>
-          <button @click="handleDelete" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="删除节点">
+          <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="删除节点" @click="handleDelete">
             <n-icon :size="14">
               <TrashOutline />
             </n-icon>
@@ -77,19 +78,23 @@
         <!-- Connected inputs indicator | 连接输入指示 -->
         <div
           class="flex items-center gap-2 text-xs text-[var(--text-secondary)] py-1 border-t border-[var(--border-color)]">
-          <span class="px-2 py-0.5 rounded-full"
+          <span
+class="px-2 py-0.5 rounded-full"
             :class="connectedPrompt ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800'">
             提示词 {{ connectedPrompt ? '✓' : '○' }}
           </span>
-          <span class="px-2 py-0.5 rounded-full"
+          <span
+class="px-2 py-0.5 rounded-full"
             :class="imagesByRole.firstFrame ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800'">
             首帧 {{ imagesByRole.firstFrame ? '✓' : '○' }}
           </span>
-          <span class="px-2 py-0.5 rounded-full"
+          <span
+class="px-2 py-0.5 rounded-full"
             :class="imagesByRole.lastFrame ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800'">
             尾帧 {{ imagesByRole.lastFrame ? '✓' : '○' }}
           </span>
-          <span class="px-2 py-0.5 rounded-full"
+          <span
+class="px-2 py-0.5 rounded-full"
             :class="imagesByRole.referenceImages.length > 0 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800'">
             参考图 {{ imagesByRole.referenceImages.length > 0 ? `✓ ${imagesByRole.referenceImages.length}` : '○' }}
           </span>
@@ -105,8 +110,9 @@
       </div> -->
 
         <!-- Generate button | 生成按钮 -->
-        <button @click="handleGenerate" :disabled="isGenerating || !isConfigured"
-          class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <button
+:disabled="isGenerating || !isConfigured" class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          @click="handleGenerate">
           <n-spin v-if="isGenerating" :size="14" />
           <template v-else>
             <n-icon :size="16">
@@ -131,8 +137,8 @@
       </div>
 
       <!-- Handles | 连接点 -->
-      <Handle type="target" :position="Position.Left" id="left" class="!bg-[var(--accent-color)]" />
-      <NodeHandleMenu :nodeId="id" nodeType="videoConfig" :visible="showHandleMenu" :operations="[]" />
+      <Handle id="left" type="target" :position="Position.Left" class="!bg-[var(--accent-color)]" />
+      <NodeHandleMenu :node-id="id" node-type="videoConfig" :visible="showHandleMenu" :operations="[]" />
     </div>
 
   </div>
@@ -149,6 +155,8 @@ import { NIcon, NDropdown, NSpin } from 'naive-ui'
 import { ChevronForwardOutline, ChevronDownOutline, TrashOutline, VideocamOutline, CopyOutline, CreateOutline } from '@vicons/ionicons5'
 import { useVideoGeneration } from '../../hooks'
 import { updateNode, removeNode, duplicateNode, addNode, addEdge, nodes, edges } from '../../stores/canvas'
+import { createTask, succeedTask, failTask } from '../../stores/tasks'
+import { currentProject } from '../../stores/projects'
 import NodeHandleMenu from './NodeHandleMenu.vue'
 import { useModelStore } from '../../stores/pinia'
 import { getModelRatioOptions, getModelDurationOptions, getModelConfig, DEFAULT_VIDEO_MODEL } from '../../stores/models'
@@ -373,6 +381,16 @@ const handleGenerate = async () => {
     updateNodeInternals(videoNodeId)
   }, 50)
 
+  // Record task in task center | 在任务中心记录任务
+  const taskRecordId = createTask({
+    type: 'video',
+    prompt: prompt || '',
+    model: localModel.value,
+    projectId: currentProject.value?.id || '',
+    projectName: currentProject.value?.name || '',
+    nodeId: videoNodeId
+  })
+
   try {
     // Build request params (raw form data) | 构建请求参数（原始表单数据）
     // These will be transformed by inputTransform | 这些会被 inputTransform 转换
@@ -420,18 +438,22 @@ const handleGenerate = async () => {
         loading: false,
         label: '视频生成',
         model: localModel.value,
+        prompt: prompt || '',
         updatedAt: Date.now()
       })
       window.$message?.success('视频生成成功')
       // Mark this config node as executed | 标记配置节点已执行
       updateNode(props.id, { executed: true, outputNodeId: videoNodeId })
+      succeedTask(taskRecordId, url)
     } else if (newTaskId) {
       // 需要轮询，传递 taskId 给 VideoNode
       updateNode(videoNodeId, {
         taskId: newTaskId,
+        taskRecordId,
         loading: true,
         label: '视频生成中...',
         model: localModel.value,
+        prompt: prompt || '',
         updatedAt: Date.now()
       })
       window.$message?.success('视频任务已创建')
@@ -446,6 +468,7 @@ const handleGenerate = async () => {
       label: '生成失败',
       updatedAt: Date.now()
     })
+    failTask(taskRecordId, err)
     window.$message?.error(err.message || '视频生成失败')
   } finally {
     isGenerating.value = false

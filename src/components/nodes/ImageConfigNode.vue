@@ -9,26 +9,26 @@
       <div class="flex items-center justify-between px-3 py-2 border-b border-[var(--border-color)]">
         <span
           v-if="!isEditingLabel"
-          @dblclick="startEditLabel"
           class="text-sm font-medium text-[var(--text-secondary)] cursor-text hover:bg-[var(--bg-tertiary)] px-1 rounded transition-colors"
           title="双击编辑名称"
+          @dblclick="startEditLabel"
         >{{ data.label }}</span>
         <input
           v-else
           ref="labelInputRef"
           v-model="editingLabelValue"
+          class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] px-1 rounded outline-none border border-blue-500"
           @blur="finishEditLabel"
           @keydown.enter="finishEditLabel"
           @keydown.escape="cancelEditLabel"
-          class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] px-1 rounded outline-none border border-blue-500"
         />
         <div class="flex items-center gap-1">
-          <button @click="handleDuplicate" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="复制节点">
+          <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="复制节点" @click="handleDuplicate">
             <n-icon :size="14">
               <CopyOutline />
             </n-icon>
           </button>
-          <button @click="handleDelete" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="删除节点">
+          <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="删除节点" @click="handleDelete">
             <n-icon :size="14">
               <TrashOutline />
             </n-icon>
@@ -84,11 +84,13 @@
         <!-- Connected inputs indicator | 连接输入指示 -->
         <div
           class="flex items-center gap-2 text-xs text-[var(--text-secondary)] py-1 border-t border-[var(--border-color)]">
-          <span class="px-2 py-0.5 rounded-full"
+          <span
+class="px-2 py-0.5 rounded-full"
             :class="connectedPrompts.length > 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800'">
             提示词 {{ connectedPrompts.length > 0 ? `${connectedPrompts.length}个` : '○' }}
           </span>
-          <span class="px-2 py-0.5 rounded-full"
+          <span
+class="px-2 py-0.5 rounded-full"
             :class="connectedRefImages.length > 0 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800'">
             参考图 {{ connectedRefImages.length > 0 ? `${connectedRefImages.length}张` : '○' }}
           </span>
@@ -97,8 +99,9 @@
         <!-- Generate button | 生成按钮 -->
         <div v-if="hasConnectedImageWithContent" class="flex gap-2">
           <!-- Create new (primary) | 新建节点（主按钮） -->
-          <button @click="handleGenerate('new')" :disabled="loading || !isConfigured"
-            class="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <button
+:disabled="loading || !isConfigured" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="handleGenerate('new')">
             <n-spin v-if="loading" :size="14" />
             <template v-else>
               <n-icon :size="14"><AddOutline /></n-icon>
@@ -106,8 +109,9 @@
             </template>
           </button>
           <!-- Replace existing (secondary) | 替换现有（次按钮） -->
-          <button @click="handleGenerate('replace')" :disabled="loading || !isConfigured"
-            class="flex-shrink-0 flex items-center justify-center gap-1 py-2 px-2.5 rounded-lg border border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <button
+:disabled="loading || !isConfigured" class="flex-shrink-0 flex items-center justify-center gap-1 py-2 px-2.5 rounded-lg border border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="handleGenerate('replace')">
             <n-spin v-if="loading" :size="14" />
             <template v-else>
               <n-icon :size="14"><RefreshOutline /></n-icon>
@@ -115,8 +119,9 @@
             </template>
           </button>
         </div>
-        <button v-else @click="handleGenerate('auto')" :disabled="loading || !isConfigured"
-          class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <button
+v-else :disabled="loading || !isConfigured" class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          @click="handleGenerate('auto')">
           <n-spin v-if="loading" :size="14" />
           <template v-else>
             <span
@@ -146,8 +151,8 @@
       </div>
 
       <!-- Handles | 连接点 -->
-      <Handle type="target" :position="Position.Left" id="left" class="!bg-[var(--accent-color)]" />
-      <NodeHandleMenu :nodeId="id" nodeType="imageConfig" :visible="showHandleMenu" :operations="operations" @select="handleSelect" />
+      <Handle id="left" type="target" :position="Position.Left" class="!bg-[var(--accent-color)]" />
+      <NodeHandleMenu :node-id="id" node-type="imageConfig" :visible="showHandleMenu" :operations="operations" @select="handleSelect" />
     </div>
 
   </div>
@@ -164,6 +169,8 @@ import { NIcon, NDropdown, NSpin } from 'naive-ui'
 import { ChevronDownOutline, ChevronForwardOutline, CopyOutline, TrashOutline, RefreshOutline, AddOutline, ImageOutline, CreateOutline } from '@vicons/ionicons5'
 import { useImageGeneration } from '../../hooks'
 import { updateNode, addNode, addEdge, nodes, edges, duplicateNode, removeNode } from '../../stores/canvas'
+import { createTask, succeedTask, failTask } from '../../stores/tasks'
+import { currentProject } from '../../stores/projects'
 import NodeHandleMenu from './NodeHandleMenu.vue'
 import { useModelStore } from '../../stores/pinia'
 import { getModelSizeOptions, getModelQualityOptions, getModelConfig, DEFAULT_IMAGE_MODEL } from '../../stores/models'
@@ -646,6 +653,16 @@ const handleGenerate = async (mode = 'auto') => {
     updateNodeInternals(imageNodeId)
   }, 50)
 
+  // Record task in task center | 在任务中心记录任务
+  const taskId = createTask({
+    type: 'image',
+    prompt: prompt || '',
+    model: localModel.value,
+    projectId: currentProject.value?.id || '',
+    projectName: currentProject.value?.name || '',
+    nodeId: imageNodeId
+  })
+
   try {
     // Build request params | 构建请求参数
     const params = {
@@ -670,11 +687,13 @@ const handleGenerate = async (mode = 'auto') => {
         loading: false,
         label: '文生图',
         model: localModel.value,
+        prompt: prompt || '',
         updatedAt: Date.now()
       })
-      
+
       // Mark this config node as executed | 标记配置节点已执行
       updateNode(props.id, { executed: true, outputNodeId: imageNodeId })
+      succeedTask(taskId, result[0].url)
     }
     window.$message?.success('图片生成成功')
   } catch (err) {
@@ -684,6 +703,7 @@ const handleGenerate = async (mode = 'auto') => {
       error: err.message || '生成失败',
       updatedAt: Date.now()
     })
+    failTask(taskId, err)
     window.$message?.error(err.message || '图片生成失败')
   }
 }

@@ -86,7 +86,7 @@
                 size="small"
                 @keyup.enter="handleAddChatModel"
               />
-              <n-button size="small" type="primary" @click="handleAddChatModel" :disabled="!newChatModel">
+              <n-button size="small" type="primary" :disabled="!newChatModel" @click="handleAddChatModel">
                 添加
               </n-button>
             </div>
@@ -117,7 +117,7 @@
                 size="small"
                 @keyup.enter="handleAddImageModel"
               />
-              <n-button size="small" type="primary" @click="handleAddImageModel" :disabled="!newImageModel">
+              <n-button size="small" type="primary" :disabled="!newImageModel" @click="handleAddImageModel">
                 添加
               </n-button>
             </div>
@@ -148,7 +148,7 @@
                 size="small"
                 @keyup.enter="handleAddVideoModel"
               />
-              <n-button size="small" type="primary" @click="handleAddVideoModel" :disabled="!newVideoModel">
+              <n-button size="small" type="primary" :disabled="!newVideoModel" @click="handleAddVideoModel">
                 添加
               </n-button>
             </div>
@@ -179,7 +179,7 @@
           没有 API Key？点击注册
         </a>
         <div class="flex gap-2">
-          <n-button @click="handleClear" tertiary>清除配置</n-button>
+          <n-button tertiary @click="handleClear">清除配置</n-button>
           <n-button @click="showModal = false">取消</n-button>
           <n-button type="primary" @click="handleSave">保存</n-button>
         </div>

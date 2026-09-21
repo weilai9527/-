@@ -5,8 +5,8 @@
     <AppHeader class="bg-[var(--bg-secondary)]">
       <template #left>
         <button 
-          @click="goBack"
           class="p-2 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors"
+          @click="goBack"
         >
           <n-icon :size="20"><ChevronBackOutline /></n-icon>
         </button>
@@ -19,18 +19,18 @@
       </template>
       <template #right>
         <button 
-          @click="showDownloadModal = true"
           class="p-2 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors"
           :class="{ 'text-[var(--accent-color)]': hasDownloadableAssets }"
           title="批量下载素材"
+          @click="showDownloadModal = true"
         >
           <n-icon :size="20"><DownloadOutline /></n-icon>
         </button>
         <button 
-          @click="showApiSettings = true"
           class="p-2 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors"
           :class="{ 'text-[var(--accent-color)]': isApiConfigured }"
           title="API 设置"
+          @click="showApiSettings = true"
         >
           <n-icon :size="20"><SettingsOutline /></n-icon>
         </button>
@@ -52,12 +52,12 @@
         :max-zoom="2"
         :snap-to-grid="true"
         :snap-grid="[20, 20]"
+        class="canvas-flow"
         @connect="onConnect"
         @node-click="onNodeClick"
         @pane-click="onPaneClick"
         @viewport-change="handleViewportChange"
         @edges-change="onEdgesChange"
-        class="canvas-flow"
       >
         <Background v-if="showGrid" :gap="20" :size="1" />
         <MiniMap 
@@ -71,16 +71,16 @@
       <!-- Left toolbar | 左侧工具栏 -->
       <aside class="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-1 p-2 bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] shadow-lg z-10">
         <button 
-          @click="showNodeMenu = !showNodeMenu"
           class="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--accent-color)] text-white hover:bg-[var(--accent-hover)] transition-colors"
           title="添加节点"
+          @click="showNodeMenu = !showNodeMenu"
         >
           <n-icon :size="20"><AddOutline /></n-icon>
         </button>
         <button 
-          @click="showWorkflowPanel = true"
           class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[var(--bg-tertiary)] transition-colors"
           title="工作流模板"
+          @click="showWorkflowPanel = true"
         >
           <n-icon :size="20"><AppsOutline /></n-icon>
         </button>
@@ -88,10 +88,10 @@
         <button 
           v-for="tool in tools" 
           :key="tool.id"
-          @click="tool.action"
           :disabled="tool.disabled && tool.disabled()"
           class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           :title="tool.name"
+          @click="tool.action"
         >
           <n-icon :size="20"><component :is="tool.icon" /></n-icon>
         </button>
@@ -105,8 +105,8 @@
         <button 
           v-for="nodeType in nodeTypeOptions" 
           :key="nodeType.type"
-          @click="addNewNode(nodeType.type)"
           class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors text-left"
+          @click="addNewNode(nodeType.type)"
         >
           <n-icon :size="20" :color="nodeType.color"><component :is="nodeType.icon" /></n-icon>
           <span class="text-sm">{{ nodeType.name }}</span>
@@ -124,18 +124,18 @@
           <n-icon :size="16"><GridOutline /></n-icon>
         </button> -->
         <button 
-          @click="fitView({ padding: 0.2 })" 
           class="p-2 hover:bg-[var(--bg-tertiary)] rounded transition-colors"
           title="适应视图"
+          @click="fitView({ padding: 0.2 })"
         >
           <n-icon :size="16"><LocateOutline /></n-icon>
         </button>
         <div class="flex items-center gap-1 px-2">
-          <button @click="zoomOut" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors">
+          <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" @click="zoomOut">
             <n-icon :size="14"><RemoveOutline /></n-icon>
           </button>
           <span class="text-xs min-w-[40px] text-center">{{ Math.round(viewport.zoom * 100) }}%</span>
-          <button @click="zoomIn" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors">
+          <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" @click="zoomIn">
             <n-icon :size="14"><AddOutline /></n-icon>
           </button>
         </div>
@@ -170,10 +170,10 @@
           <div class="flex items-center justify-between mt-2">
             <div class="flex items-center gap-2">
               <button 
-                @click="handlePolish"
                 :disabled="isProcessing || !chatInput.trim()"
                 class="px-3 py-1.5 text-xs rounded-lg bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] border border-[var(--border-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="AI 润色提示词"
+                @click="handlePolish"
               >
                 ✨ AI 润色
               </button>
@@ -184,9 +184,9 @@
                 自动执行
               </label>
               <button 
-                @click="sendMessage"
                 :disabled="isProcessing"
                 class="w-8 h-8 rounded-xl bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="sendMessage"
               >
                 <n-spin v-if="isProcessing" :size="16" />
                 <n-icon v-else :size="20" color="white"><SendOutline /></n-icon>
@@ -201,8 +201,8 @@
           <button 
             v-for="tag in suggestions" 
             :key="tag"
-            @click="chatInput = tag"
             class="px-2 py-0.5 text-xs rounded-full bg-[var(--bg-secondary)]/80 border border-[var(--border-color)] hover:border-[var(--accent-color)] transition-colors"
+            @click="chatInput = tag"
           >
             {{ tag }}
           </button>
@@ -231,6 +231,26 @@
       <template #action>
         <n-button @click="showDeleteModal = false">取消</n-button>
         <n-button type="error" @click="confirmDelete">删除</n-button>
+      </template>
+    </n-modal>
+
+    <!-- Save as Template Modal | 保存为模板弹窗 -->
+    <n-modal v-model:show="showTemplateModal" preset="dialog" title="保存为模板">
+      <div class="space-y-3">
+        <n-input v-model:value="templateName" placeholder="模板名称" />
+        <n-input
+          v-model:value="templateDescription"
+          type="textarea"
+          placeholder="模板描述（可选），例如：三镜头分镜工作流"
+          :autosize="{ minRows: 2, maxRows: 4 }"
+        />
+        <p class="text-xs text-[var(--text-tertiary)]">
+          模板只保留节点结构与配置，生成的图片/视频结果不会被保存。
+        </p>
+      </div>
+      <template #action>
+        <n-button @click="showTemplateModal = false">取消</n-button>
+        <n-button type="primary" @click="confirmSaveTemplate">保存</n-button>
       </template>
     </n-modal>
 
@@ -279,6 +299,7 @@ import { loadAllModels } from '../stores/models'
 import { useChat, useWorkflowOrchestrator } from '../hooks'
 import { useModelStore } from '../stores/pinia'
 import { projects, initProjectsStore, updateProject, renameProject, currentProject, deleteProject, duplicateProject } from '../stores/projects'
+import { saveAsTemplate } from '../stores/templates'
 
 // API Settings component | API 设置组件
 import ApiSettings from '../components/ApiSettings.vue'
@@ -408,6 +429,7 @@ const projectName = computed(() => {
 const projectOptions = [
   { label: '重命名', key: 'rename' },
   { label: '复制', key: 'duplicate' },
+  { label: '保存为模板', key: 'saveAsTemplate' },
   { label: '删除', key: 'delete' }
 ]
 
@@ -647,7 +669,7 @@ const handleProjectAction = (key) => {
       renameValue.value = projectName.value
       showRenameModal.value = true
       break
-    case 'duplicate':
+    case 'duplicate': {
       const newId = duplicateProject(route.params.id)
       if (newId) {
         window.$message?.success('项目已复制')
@@ -656,10 +678,40 @@ const handleProjectAction = (key) => {
         window.$message?.error('复制失败')
       }
       break
+    }
+    case 'saveAsTemplate': {
+      templateName.value = projectName.value
+      templateDescription.value = ''
+      showTemplateModal.value = true
+      break
+    }
     case 'delete':
       showDeleteModal.value = true
       break
   }
+}
+
+// Save as template | 保存为模板
+const showTemplateModal = ref(false)
+const templateName = ref('')
+const templateDescription = ref('')
+
+const confirmSaveTemplate = () => {
+  if (!templateName.value.trim()) {
+    window.$message?.warning('请输入模板名称')
+    return
+  }
+  saveAsTemplate({
+    name: templateName.value,
+    description: templateDescription.value,
+    canvasData: {
+      nodes: nodes.value,
+      edges: edges.value,
+      viewport: viewport.value
+    }
+  })
+  showTemplateModal.value = false
+  window.$message?.success('已保存为模板')
 }
 
 // Confirm rename | 确认重命名

@@ -5,6 +5,7 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   base: '/huobao-canvas',
+  cacheDir: 'node_modules/.vite-dev',
   plugins: [vue()],
   resolve: {
     alias: {

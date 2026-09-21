@@ -11,18 +11,18 @@
           <div class="flex items-center gap-2">
             <span
               v-if="!isEditingLabel"
-              @dblclick="startEditLabel"
               class="text-sm font-medium text-[var(--text-primary)] cursor-text hover:bg-[var(--bg-tertiary)] px-1 rounded transition-colors"
               title="双击编辑名称"
+              @dblclick="startEditLabel"
             >{{ data.label || '图像生成结果' }}</span>
             <input
               v-else
               ref="labelInputRef"
               v-model="editingLabelValue"
+              class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-primary)] px-1 rounded outline-none border border-blue-500"
               @blur="finishEditLabel"
               @keydown.enter="finishEditLabel"
               @keydown.escape="cancelEditLabel"
-              class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-primary)] px-1 rounded outline-none border border-blue-500"
             />
             <!-- Public switch | 公开开关 -->
             <n-tooltip trigger="hover">
@@ -33,8 +33,8 @@
                 >
                   <n-switch
                     :value="isPublic"
-                    @update:value="handleTogglePublic"
                     size="small"
+                    @update:value="handleTogglePublic"
                   />
                 </button>
               </template>
@@ -45,7 +45,7 @@
             <!-- Replace button | 替换按钮 -->
             <n-tooltip trigger="hover">
               <template #trigger>
-                <button @click="showReplaceModal = true" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors">
+                <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" @click="showReplaceModal = true">
                   <n-icon :size="14">
                     <SwapHorizontalOutline />
                   </n-icon>
@@ -55,7 +55,7 @@
             </n-tooltip>
             <n-tooltip v-if="data.url" trigger="hover">
               <template #trigger>
-                <button @click="handlePreview" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors">
+                <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" @click="handlePreview">
                   <n-icon :size="14">
                     <EyeOutline />
                   </n-icon>
@@ -65,7 +65,7 @@
             </n-tooltip>
             <n-tooltip v-if="data.url" trigger="hover">
               <template #trigger>
-                <button @click="handleDownload" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors">
+                <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" @click="handleDownload">
                   <n-icon :size="14">
                     <DownloadOutline />
                   </n-icon>
@@ -75,7 +75,7 @@
             </n-tooltip>
             <n-tooltip trigger="hover">
               <template #trigger>
-                <button @click="handleDuplicate" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors">
+                <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" @click="handleDuplicate">
                   <n-icon :size="14">
                     <CopyOutline />
                   </n-icon>
@@ -85,7 +85,7 @@
             </n-tooltip>
             <n-tooltip trigger="hover">
               <template #trigger>
-                <button @click="handleDelete" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors">
+                <button class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" @click="handleDelete">
                   <n-icon :size="14">
                     <TrashOutline />
                   </n-icon>
@@ -104,7 +104,8 @@
       <!-- Image preview area | 图片预览区域 -->
       <div class="p-3">
         <!-- Loading state | 加载状态 -->
-        <div v-if="data.loading"
+        <div
+v-if="data.loading"
           class="aspect-square rounded-xl bg-gradient-to-br from-cyan-400 via-blue-300 to-amber-200 flex flex-col items-center justify-center gap-3 relative overflow-hidden">
           <!-- Animated gradient overlay | 动画渐变遮罩 -->
           <div
@@ -120,7 +121,8 @@
         </div>
 
         <!-- Error state | 错误状态 -->
-        <div v-else-if="data.error"
+        <div
+v-else-if="data.error"
           class="aspect-square rounded-xl bg-red-50 dark:bg-red-900/20 flex flex-col items-center justify-center gap-2 border border-red-200 dark:border-red-800">
           <n-icon :size="32" class="text-red-500">
             <CloseCircleOutline />
@@ -131,8 +133,8 @@
         <!-- Image display | 图片显示 -->
         <div 
           v-else-if="data.url" 
-          class="rounded-xl overflow-hidden relative" 
           ref="imageContainerRef"
+          class="rounded-xl overflow-hidden relative"
         >
           <img 
             :src="data.url" 
@@ -181,8 +183,8 @@
             <div class="flex items-center gap-1 w-16">
               <div class="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
               <input 
-                type="range" 
                 v-model="brushSize" 
+                type="range"
                 min="10" 
                 max="80" 
                 class="w-full h-0.5 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-purple"
@@ -192,17 +194,17 @@
             
             <!-- Reset button | 重置按钮 -->
             <button 
-              @click="clearMask"
               class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
               title="清除"
+              @click="clearMask"
             >
               <n-icon :size="12" class="text-gray-400"><RefreshOutline /></n-icon>
             </button>
             
             <!-- Apply button | 应用按钮 -->
             <button 
-              @click="applyInpaint"
               class="px-2 py-0.5 bg-purple-500 hover:bg-purple-600 text-white text-xs rounded transition-colors"
+              @click="applyInpaint"
             >
               应用
             </button>
@@ -210,7 +212,8 @@
         </div>
 
         <!-- URL Loading state | URL 加载状态 -->
-        <div v-else-if="urlLoading"
+        <div
+v-else-if="urlLoading"
           class="aspect-square rounded-xl bg-gradient-to-br from-cyan-400 via-blue-300 to-amber-200 flex flex-col items-center justify-center gap-3 relative overflow-hidden">
           <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-400/20 to-amber-300/20 animate-pulse"></div>
           <div class="relative z-10">
@@ -227,7 +230,8 @@
               <ImageOutline />
             </n-icon>
             <span class="text-sm text-[var(--text-secondary)] text-center">拖放图片或点击上传</span>
-            <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer"
+            <input
+type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer"
               @change="handleFileUpload" />
           </div>
           
@@ -248,9 +252,9 @@
               @keydown.enter="handleUrlSubmit"
             />
             <button 
-              @click="handleUrlSubmit"
               :disabled="!urlInput.trim()"
               class="px-3 py-2 text-xs bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              @click="handleUrlSubmit"
             >
               预览
             </button>
@@ -259,8 +263,8 @@
       </div>
 
       <!-- Handles | 连接点 -->
-      <NodeHandleMenu :nodeId="id" nodeType="image" :visible="showHandleMenu" :operations="operations" @select="handleSelect" />
-      <Handle type="target" :position="Position.Left" id="left" class="!bg-[var(--accent-color)]" />
+      <NodeHandleMenu :node-id="id" node-type="image" :visible="showHandleMenu" :operations="operations" @select="handleSelect" />
+      <Handle id="left" type="target" :position="Position.Left" class="!bg-[var(--accent-color)]" />
     </div>
   </div>
 

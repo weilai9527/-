@@ -26,8 +26,8 @@
       
       <!-- Theme toggle | 主题切换 -->
       <button 
-        @click="toggleTheme"
         class="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors"
+        @click="toggleTheme"
       >
         <n-icon :size="20">
           <SunnyOutline v-if="isDark" />

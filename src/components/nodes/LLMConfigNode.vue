@@ -12,22 +12,26 @@
           <n-icon :size="16" class="text-purple-500">
             <ChatbubbleOutline />
           </n-icon>
-          <span v-if="!isEditingLabel" @dblclick="startEditLabel"
-            class="text-sm font-medium text-[var(--text-secondary)] cursor-text hover:bg-[var(--bg-tertiary)] px-1 rounded transition-colors"
-            title="双击编辑名称">{{ nodeLabel }}</span>
-          <input v-else ref="labelInputRef" v-model="editingLabelValue" @blur="finishEditLabel"
-            @keydown.enter="finishEditLabel" @keydown.escape="cancelEditLabel"
-            class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] px-1 rounded outline-none border border-purple-500" />
+          <span
+v-if="!isEditingLabel" class="text-sm font-medium text-[var(--text-secondary)] cursor-text hover:bg-[var(--bg-tertiary)] px-1 rounded transition-colors"
+            title="双击编辑名称"
+            @dblclick="startEditLabel">{{ nodeLabel }}</span>
+          <input
+v-else ref="labelInputRef" v-model="editingLabelValue" class="text-sm font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)] px-1 rounded outline-none border border-purple-500"
+            @blur="finishEditLabel" @keydown.enter="finishEditLabel"
+            @keydown.escape="cancelEditLabel" />
         </div>
         <div class="flex items-center gap-1">
-          <button @click="handleDuplicate" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors"
-            title="复制节点">
+          <button
+class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="复制节点"
+            @click="handleDuplicate">
             <n-icon :size="14">
               <CopyOutline />
             </n-icon>
           </button>
-          <button @click="handleDelete" class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors"
-            title="删除节点">
+          <button
+class="p-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors" title="删除节点"
+            @click="handleDelete">
             <n-icon :size="14">
               <TrashOutline />
             </n-icon>
@@ -40,10 +44,11 @@
         <!-- System prompt | 系统提示词 -->
         <div class="relative">
           <label class="text-xs text-[var(--text-secondary)] mb-1 block">系统提示词</label>
-          <div class="textarea-wrapper" ref="textareaWrapper">
-            <div ref="systemPromptRef" class="editor-content" contenteditable="true" @input="handleInput"
-              @keydown="handleKeydown" @paste="handlePaste" @blur="handleBlur" @wheel.stop @mousedown.stop
-              :data-placeholder="placeholder"></div>
+          <div ref="textareaWrapper" class="textarea-wrapper">
+            <div
+ref="systemPromptRef" class="editor-content" contenteditable="true" :data-placeholder="placeholder"
+              @input="handleInput" @keydown="handleKeydown" @paste="handlePaste" @blur="handleBlur" @wheel.stop
+              @mousedown.stop></div>
           </div>
           <!-- @ 提及预览 -->
           <!-- <div class="mentions-preview mt-1 flex flex-wrap gap-1" v-if="mentionsPreview.length > 0">
@@ -61,7 +66,8 @@
         <!-- Model selection | 模型选择 -->
         <div>
           <label class="text-xs text-[var(--text-secondary)] mb-1 block">模型</label>
-          <n-select v-model:value="model" :options="modelOptions" label-field="label" value-field="key" size="small"
+          <n-select
+v-model:value="model" :options="modelOptions" label-field="label" value-field="key" size="small"
             @update:value="updateConfig" />
         </div>
 
@@ -72,8 +78,9 @@
         </div>
 
         <!-- Generate button | 生成按钮 -->
-        <button @click="handleGenerate" :disabled="isGenerating"
-          class="w-full px-4 py-2 text-sm rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <button
+:disabled="isGenerating" class="w-full px-4 py-2 text-sm rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          @click="handleGenerate">
           <n-spin v-if="isGenerating" :size="14" />
           <n-icon v-else :size="14">
             <SparklesOutline />
@@ -85,31 +92,35 @@
         <div v-if="outputContent" class="mt-2">
           <div class="flex items-center justify-between mb-1">
             <label class="text-xs text-[var(--text-secondary)]">生成结果</label>
-            <button @click="handleCopyOutput"
-              class="text-xs text-[var(--text-secondary)] hover:text-purple-500 flex items-center gap-1 transition-colors">
+            <button
+class="text-xs text-[var(--text-secondary)] hover:text-purple-500 flex items-center gap-1 transition-colors"
+              @click="handleCopyOutput">
               <n-icon :size="12">
                 <CopyOutline />
               </n-icon>
               复制
             </button>
           </div>
-          <div @wheel.stop @mousedown.stop
-            class="bg-[var(--bg-tertiary)] rounded-lg p-2 text-xs text-[var(--text-primary)] max-h-[150px] overflow-y-auto border border-[var(--border-color)]">
+          <div
+class="bg-[var(--bg-tertiary)] rounded-lg p-2 text-xs text-[var(--text-primary)] max-h-[150px] overflow-y-auto border border-[var(--border-color)]" @wheel.stop
+            @mousedown.stop>
             <pre class="whitespace-pre-wrap">{{ outputContent }}</pre>
           </div>
 
           <!-- Split actions | 拆分操作 -->
           <div class="mt-2 flex gap-2">
-            <button @click="handleSplitToTextWithImage" :disabled="isSplitting"
-              class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-purple-400 text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1">
+            <button
+:disabled="isSplitting" class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-purple-400 text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+              @click="handleSplitToTextWithImage">
               <n-spin v-if="isSplitting" :size="12" />
               <n-icon v-else :size="12">
                 <ImageOutline />
               </n-icon>
               {{ isSplitting ? '拆分中...' : '拆分图文' }}
             </button>
-            <button @click="handleSplitToTextOnly" :disabled="isSplitting"
-              class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-purple-400 text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1">
+            <button
+:disabled="isSplitting" class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-purple-400 text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+              @click="handleSplitToTextOnly">
               <n-spin v-if="isSplitting" :size="12" />
               <n-icon v-else :size="12">
                 <ListOutline />
@@ -122,15 +133,17 @@
       </div>
 
       <!-- Handles | 连接点 -->
-      <Handle type="target" :position="Position.Left" id="left" class="!bg-purple-500" />
-      <NodeHandleMenu :nodeId="id" nodeType="llmConfig" dotColor="#a855f7" :visible="showHandleMenu"
+      <Handle id="left" type="target" :position="Position.Left" class="!bg-purple-500" />
+      <NodeHandleMenu
+:node-id="id" node-type="llmConfig" dot-color="#a855f7" :visible="showHandleMenu"
         :operations="operations" @select="handleSelect" />
     </div>
   </div>
 
   <!-- Mentions picker | @ 选择器 -->
-  <MentionsPicker v-model:visible="showMentionsPicker" :position="mentionsPosition" context="llmConfig"
-    :showSearch="false" :connectedNodeIds="hasConnectedNodes ? connectedTextNodeIds : []"
+  <MentionsPicker
+v-model:visible="showMentionsPicker" :position="mentionsPosition" context="llmConfig"
+    :show-search="false" :connected-node-ids="hasConnectedNodes ? connectedTextNodeIds : []"
     @select="handleMentionSelect" />
 </template>
 

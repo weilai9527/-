@@ -58,7 +58,13 @@ export const saveLocalAsset = async (blob, metadata = {}) => {
     mimeType: metadata.mimeType || blob.type || 'application/octet-stream',
     fileName: metadata.fileName || `${id}`,
     originalUrl: metadata.originalUrl || '',
-    createdAt: metadata.createdAt || new Date().toISOString()
+    createdAt: metadata.createdAt || new Date().toISOString(),
+    // Extended metadata for asset library | 素材库扩展元数据
+    type: metadata.type || (blob.type?.startsWith('video/') ? 'video' : 'image'),
+    prompt: metadata.prompt || '',
+    model: metadata.model || '',
+    projectId: metadata.projectId || '',
+    projectName: metadata.projectName || ''
   }
 
   await withStore('readwrite', (store) => store.put(record))
@@ -82,6 +88,41 @@ export const getLocalAsset = async (id) => {
       request.onerror = () => reject(request.error)
     })
   })
+}
+
+/**
+ * List all local assets (metadata only, blobs excluded for performance) | 列出所有本地素材（仅元数据）
+ * @returns {Promise<Array>} Asset metadata records sorted by createdAt desc
+ */
+export const listLocalAssets = async () => {
+  if (!isBrowser()) return []
+
+  const records = await withStore('readonly', (store) => {
+    const request = store.getAll()
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result || [])
+      request.onerror = () => reject(request.error)
+    })
+  })
+
+  return records
+    .map(({ blob, ...meta }) => meta)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+}
+
+/**
+ * Delete a local asset | 删除本地素材
+ */
+export const deleteLocalAsset = async (id) => {
+  if (!id) return
+
+  await withStore('readwrite', (store) => store.delete(id))
+
+  if (objectUrlCache.has(id)) {
+    URL.revokeObjectURL(objectUrlCache.get(id))
+    objectUrlCache.delete(id)
+  }
+  dataUrlCache.delete(id)
 }
 
 export const getLocalAssetObjectUrl = async (id) => {

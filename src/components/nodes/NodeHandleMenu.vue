@@ -2,21 +2,23 @@
   <!-- Right handle with expandable menu | 右侧连接点带展开菜单 -->
   <div class="handle-menu-anchor">
     <!-- Vue Flow handle for edge connections - visible and draggable | 可见且可拖拽的 Vue Flow 连接点 -->
-    <Handle type="source" :position="Position.Right" id="right" style="width: 12px; height: 12px;" />
+    <Handle id="right" type="source" :position="Position.Right" style="width: 12px; height: 12px;" />
 
     <!-- Hover zone with + icon | 带 + 图标的悬浮区域 -->
-    <div v-if="true && showHandleHoverZone" class="handle-hover-zone"
+    <div
+v-if="true && showHandleHoverZone" class="handle-hover-zone"
       @mouseenter="handleMouseEnter"
       @mouseleave="handleMouseLeave">
       <n-icon :size="14" class="add-icon">
         <AddOutline />
       </n-icon>
       <transition name="menu-fade">
-        <div v-if="showMenu" class="handle-menu"
+        <div
+v-if="showMenu" class="handle-menu"
           @mouseenter="handleMenuMouseEnter"
           @mouseleave="handleMenuMouseLeave"
           @mousedown.stop>
-          <button v-for="item in menuItems" :key="item.type" @click.stop="handleCreate(item)" class="menu-item group">
+          <button v-for="item in menuItems" :key="item.type" class="menu-item group" @click.stop="handleCreate(item)">
             <n-icon :size="14" class="text-gray-500 group-hover:text-white">
               <component :is="item.icon" />
             </n-icon>

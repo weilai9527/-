@@ -14,8 +14,8 @@
     >
       <n-dropdown 
         :options="orderOptions" 
-        @select="handleOrderSelect"
         size="small"
+        @select="handleOrderSelect"
       >
         <button 
           class="flex items-center justify-center w-6 h-6 text-xs font-bold rounded-full bg-[var(--accent-color)] text-white border-2 border-white shadow-md hover:scale-110 transition-transform"

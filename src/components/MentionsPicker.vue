@@ -11,7 +11,7 @@
     @update:show="handleShowChange"
   >
     <div class="mentions-picker">
-      <div class="mentions-search" v-if="showSearch">
+      <div v-if="showSearch" class="mentions-search">
         <n-input
           v-model:value="searchQuery"
           placeholder="搜索节点..."
@@ -20,7 +20,7 @@
           @keydown="handleKeydown"
         />
       </div>
-      <div class="mentions-list" v-if="filteredNodes.length > 0">
+      <div v-if="filteredNodes.length > 0" class="mentions-list">
         <div
           v-for="(node, index) in filteredNodes"
           :key="node.id"
@@ -49,7 +49,7 @@
           </div>
         </div>
       </div>
-      <div class="mentions-empty" v-else>
+      <div v-else class="mentions-empty">
         <span>没有可引用的节点</span>
       </div>
     </div>

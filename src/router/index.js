@@ -13,6 +13,16 @@ const routes = [
     path: '/canvas/:id?',
     name: 'Canvas',
     component: () => import('../views/Canvas.vue')
+  },
+  {
+    path: '/assets',
+    name: 'Assets',
+    component: () => import('../views/Assets.vue')
+  },
+  {
+    path: '/tasks',
+    name: 'Tasks',
+    component: () => import('../views/Tasks.vue')
   }
 ]
 
